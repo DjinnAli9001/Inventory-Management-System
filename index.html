@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Technology Inventory Managment</title>
+</head>
+<body>
+    <h1>Inventory Management</h1>
+
+<!--Form For Adding Inventory-->
+    <form id="addTech" action="add-tech" method="POST">
+        <!--Form For Adding Inventory-->
+        <div>
+            <label for="name">Name:</label> 
+            <input type="text" id="name" name="name" placeholder="Enter name"> 
+        </div>
+        <!--Brand-->
+        <div>
+            <label for="tech_type">Type:</label>
+            <input type="text" id="tech_type" name="tech_type">
+        </div>
+        <!--Brand-->
+        <div>
+            <label for="brand">Brand: </label>
+            <input type="text" id="brand" name="brand">
+        </div>
+        <!--Price-->
+        <div>
+            <label for="price">Price: </label>
+            <input type="text" id="price" name="price">
+        </div>
+
+        <br>
+
+        <div>
+            <button type="submit">Add To Inventory</button>
+            <button type="button" onclick="clearForm()">Clear</button>
+        </div>
+        
+       
+    </form>
+
+<br> <br>
+
+<!--SEARCH BOX-->
+
+<input type="text" id="searchBox" placeholder="Name, Type, Brand, or Price">
+
+    <!--Table Display for CRUD Operations-->
+<div >
+    <table>
+        <thead>
+            <tr>
+                <th>serialID</th>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Brand</th>
+                <th>Price</th>
+            </tr>
+        </thead>
+        <tbody id="crudTable"></tbody>
+    </table>
+    
+
+</div>
+<div id="report"></div>
+
+    
+    <!--FORM HANDLING SUBMISSION-->
+
+    <script> 
+        document.getElementById('addTech').addEventListener('submit', function(event){
+            event.preventDefault(); //Refresh disabled
+             const formData = {
+                name: document.getElementById('name').value,
+                type: document.getElementById('tech_type').value,
+                brand: document.getElementById('brand').value,
+                price: document.getElementById('price').value
+             };
+             console.log('Form data:', formData);
+
+             //Fetch request for url
+             fetch('/add-tech', { //fetch request for url
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json', //json format
+                },
+                body: JSON.stringify(formData), //json string conversion to send to server
+            })
+
+            .then(response => response.text()) //read response stream and returns another Promise with a text
+            
+            .then(data => {
+                alert('Item added successfully');
+                clearForm();
+            })
+
+            .catch((error) => { //catch block
+                console.error('Error:', error);
+            });
+        });
+        function clearForm() { //definition of function clearForm to clear form 
+            document.getElementById('addTech').reset();
+        }
+        </script>
+
+        
+    <!--SCRIPT FOR SEARCH_UPDATE_DELETE-->
+    <script>
+    const crudTable = document.getElementById('crudTable');
+    console.log('crudTable:', crudTable);
+    const crudTableBody= crudTable.getElementsByTagName('tbody')[0];
+    console.log('Table body element:', crudTableBody);
+
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('loaded');
+
+            // const crudTableBody = document.getElementById('crudTable').getElementsByTagName('tbody')[0];
+
+            console.log('Table body element:', crudTableBody); // Check if crudTableBody is correctly selected
+
+            const searchBox = document.getElementById('searchBox');
+            searchBox.value = '%';
+    
+            const urlParams = new URLSearchParams(window.location.search);
+            const searchQuery = urlParams.get('search');
+    
+            if (searchQuery) {
+                searchBox.value = decodeURIComponent(searchQuery);
+            }
+            performSearch(searchBox.value);
+    
+            searchBox.addEventListener('keyup', function() {
+                performSearch(this.value);
+            });
+    
+
+           
+            // PERFORM SEARCH FUNCTION
+            function performSearch(query) {
+                fetch(`/search-tech?search=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Data received from server:', data);
+                        console.log('Table body element:', crudTableBody);
+
+
+                        if (crudTableBody) {
+
+                        
+                        crudTableBody.innerHTML = '';
+
+                        data.forEach(inventory => {
+                            const row = crudTableBody.insertRow();
+                            row.insertCell(0).textContent = inventory.serialID;
+                            row.insertCell(1).textContent = inventory.Name;
+                            row.insertCell(2).textContent = inventory.Type;
+                            row.insertCell(3).textContent = inventory.Brand;
+                            row.insertCell(4).textContent = inventory.Price;
+
+                            const actionsCell = row.insertCell(5);
+
+                            actionsCell.innerHTML = `<button onclick="deleteItem(${inventory.serialID})">Delete</button>
+                                                    <button onclick="updateItem(${inventory.serialID}),
+                                                                    '${inventory.name.replace("'", "\\'")}', '${inventory.type}',
+                                                                    '${inventory.brand}', '${inventory.price}'>Update</button>`;
+                        });
+                    } else {
+                        console.error('crudTableBody is undefined');
+                    }
+
+                    })
+                    .catch(error => console.error('Error', error));
+            }
+
+    
+            // DELETE ITEM FUNCTION
+            function deleteItem(serialID) {
+                if (!confirm("Are you sure you want to delete this item?")) return;
+                fetch(`/search-tech/${serialID}`, { method: 'DELETE' })
+                    .then(response => {
+                        if (response.ok) {
+                            alert('Item deleted successfully');
+                            searchBox.value = '';
+                            searchBox.dispatchEvent(new Event('keyup'));
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error: ', error);
+                    });
+            }
+    
+            // FUNCTION UPDATE ITEM
+            function updateItem(serialID, name, type, brand, price) {
+                const queryParams = new URLSearchParams({
+                    serialID: serialID,
+                    name: name,
+                    type: type,
+                    brand: brand,
+                    price: price
+                }).toString();
+                window.location.href = `index.html?${queryParams}`;
+            }
+        });
+    </script>
+    
+</body>
+</html>
