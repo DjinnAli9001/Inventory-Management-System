@@ -60,12 +60,12 @@
                 <th>Price</th>
             </tr>
         </thead>
-        <tbody id="crudTable"></tbody>
+        <tbody></tbody>
     </table>
     
 
 </div>
-<div id="report"></div>
+
 
     
     <!--FORM HANDLING SUBMISSION-->
@@ -109,15 +109,19 @@
         
     <!--SCRIPT FOR SEARCH_UPDATE_DELETE-->
     <script>
-    const crudTable = document.getElementById('crudTable');
+
+    const crudTableBody = document.getElementById('crudTable').getElementsByTagName('tbody')[0];
+
     console.log('crudTable:', crudTable);
-    const crudTableBody= crudTable.getElementsByTagName('tbody')[0];
+
     console.log('Table body element:', crudTableBody);
+
+
+
+
 
         document.addEventListener('DOMContentLoaded', function() {
             console.log('loaded');
-
-            // const crudTableBody = document.getElementById('crudTable').getElementsByTagName('tbody')[0];
 
             console.log('Table body element:', crudTableBody); // Check if crudTableBody is correctly selected
 
@@ -164,8 +168,8 @@
 
                             actionsCell.innerHTML = `<button onclick="deleteItem(${inventory.serialID})">Delete</button>
                                                     <button onclick="updateItem(${inventory.serialID}),
-                                                                    '${inventory.name.replace("'", "\\'")}', '${inventory.type}',
-                                                                    '${inventory.brand}', '${inventory.price}'>Update</button>`;
+                                                                    '${inventory.Name.replace("'", "\\'")}', '${inventory.Type}',
+                                                                    '${inventory.Brand}', '${inventory.Price}'>Update</button>`;
                         });
                     } else {
                         console.error('crudTableBody is undefined');
