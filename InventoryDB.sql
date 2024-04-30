@@ -16,19 +16,17 @@ SELECT * FROM inventory;
 
 ### Table 2 - Supplier
 CREATE TABLE supplier(
-	serialID INT NOT NULL UNIQUE,
-	supplierID INT,
-    Supplier_Name VARCHAR(50),
-	FOREIGN KEY (serialID) REFERENCES inventory(serialID)
+	serialID INT PRIMARY KEY AUTO_INCREMENT,
+    supplier_name VARCHAR(50)
+	
 );
 SELECT * FROM supplier;
 
 
 ### Table 3 - Location
 CREATE TABLE location(
-	serialID INT NOT NULL UNIQUE,
-    location_type VARCHAR(50),
-    FOREIGN KEY (serialID) REFERENCES inventory(serialID)
+	serialID INT PRIMARY KEY AUTO_INCREMENT,
+    location_type VARCHAR(50)
 );
 SELECT * FROM location;
 
@@ -38,17 +36,21 @@ SELECT * FROM location;
 
 DELIMITER //
 
-CREATE TRIGGER new_records
-AFTER INSERT ON inventory
-FOR EACH ROW 
-BEGIN
-IF NEW.serialID IS NOT NULL THEN
-	INSERT INTO location(serialID) VALUES (NEW.serialID);
-    INSERT INTO supplier(serialID) VALUES (NEW.serialID);
-END IF;
-END //
+-- CREATE TRIGGER new_records
+-- AFTER INSERT ON inventory
+-- FOR EACH ROW 
+-- BEGIN
+-- IF NEW.serialID IS NOT NULL THEN
+-- 	INSERT INTO location(serialID) VALUES (NEW.serialID);
+--     INSERT INTO supplier(serialID) VALUES (NEW.serialID);
+-- END IF;
+-- END //
 
 DELIMITER ;
+
+
+
+
 
 SELECT * FROM inventory;
 SELECT * FROM supplier;

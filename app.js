@@ -52,30 +52,57 @@ app.use(express.static(__dirname));
 
 
 
-
-
+//ROUTE HANDLER for form submission
 //ROUTE HANDLER for form submission
 app.post('/add-tech', (req, res) => {
-    const {name, type, brand, price} = req.body;
-    const sql = 'INSERT INTO inventory (Name, Type, Brand, Price) VALUES (?, ?, ?, ?)';
+    const { name, type, brand, price, supplier_name, location_type } = req.body;
 
-    // Check if the name field is empty
-    if (!name || !type || !brand || !price) {
+    // Check if any required field is empty
+    if (!name || !type || !brand || !price || !supplier_name || !location_type) {
         console.error('Fields cannot be empty');
         res.status(400).send('No field can be empty');
         return;
     }
 
-    connection.query(sql, [name, type, brand, price], (error, results) => {
+    // First, insert data into the inventory table
+    const sqlInventory = 'INSERT INTO inventory (Name, Type, Brand, Price) VALUES (?, ?, ?, ?)';
+    connection.query(sqlInventory, [name, type, brand, price], (error, results) => {
         if (error) {
             console.error('Error adding item', error.message);
             res.status(500).send('Error adding item');
             return;
-        };
+        }
+
+        // Get the last inserted serialID from the inventory table
+        const serialID = results.insertId;
+
+        // Insert data into the supplier table
+        const sqlSupplier = 'INSERT INTO supplier (serialID, supplier_name) VALUES (?, ?)';
+        connection.query(sqlSupplier, [serialID, supplier_name], (error, results) => {
+            if (error) {
+                console.error('Error adding supplier', error.message);
+                res.status(500).send('Error adding supplier');
+                return;
+            }
+            console.log('Supplier added successfully:', results);
+        });
+
+        // Insert data into the location table
+        const sqlLocation = 'INSERT INTO location (serialID, location_type) VALUES (?, ?)';
+        connection.query(sqlLocation, [serialID, location_type], (error, results) => {
+            if (error) {
+                console.error('Error adding location', error.message);
+                res.status(500).send('Error adding location');
+                return;
+            }
+            console.log('Location added successfully:', results);
+        });
+
         console.log('Item added successfully:', results);
         res.send('Item is now in inventory');
     });
 });
+
 
 
 
@@ -95,6 +122,55 @@ app.get('/search-tech', (req, res) => {
     });
 });
 
+
+// Update Tech
+app.put('/update-tech/:serialID', (req, res) => {
+    const serialID = req.params.serialID;
+    const { name, type, brand, price, supplier_name, location_type } = req.body;
+    const sql = 'UPDATE inventory SET Name = ?, Type = ?, Brand = ?, Price = ? WHERE serialID = ?';
+
+    const sql2= 'UPDATE supplier SET supplier_name = ? WHERE serialID = ?';
+    const sql3 = 'UPDATE location SET location_type = ? WHERE serialID = ?';
+
+    // Check if any required field is missing
+    if (!name || !type || !brand || !price) {
+        console.error('Fields cannot be empty');
+        res.status(400).send('No field can be empty');
+        return;
+    }
+
+    connection.query(sql, [name, type, brand, price, serialID], (error, results) => {
+        if (error) {
+            console.error('Error updating item:', error.message);
+            res.status(500).send('Error updating item');
+            return;
+        }
+        console.log('Item updated successfully:', results);
+        res.send('Item updated successfully');
+    });
+
+
+
+    
+});
+
+
+    //Delete Tech
+    app.delete('/delete-tech/:serialID', (req, res) => {
+    const serialID = req.params.serialID;
+    const sql = 'DELETE FROM inventory WHERE serialID = ?';
+
+
+        connection.query(sql, [serialID], (error, results) =>{
+        if (error) {
+            console.error('Error deleting Item:', error.message);
+            res.status(500).send('Error Deleting Item');
+            return;
+        }
+        console.log('Item deleted successfully:', results);
+        res.send('Item deleted successfully');
+        });
+    });
 
 //Server Start
 app.listen(port, () => {

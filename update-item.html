@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Update Tech</title>
+</head>
+<body>
+    
+    <h1>Inventory Management</h1>
+
+    <!--Form For Adding Inventory-->
+        <form id="updateItemForm" action="/update-item" method="POST">
+            <!--Form For Adding Inventory-->
+            <div>
+                <span>serialID: </span> 
+                <span id="serialIDDisplay"></span> 
+            </div>
+            <!--Name-->
+            <div>
+                <label for="name">Name:</label> 
+                <input type="text" id="name" name="name" placeholder="Enter name"> 
+            </div>
+            <!--Type-->
+            <div>
+                <label for="tech_type">Type:</label>
+                <input type="text" id="tech_type" name="tech_type">
+            </div>
+            <!--Brand-->
+            <div>
+                <label for="brand">Brand: </label>
+                <input type="text" id="brand" name="brand">
+            </div>
+            <!--Price-->
+            <div>
+                <label for="price">Price: </label>
+                <input type="text" id="price" name="price">
+            </div>
+    
+            <br>
+    
+            <div>
+                <button type="submit">Update</button>
+                <button type="button" onclick="clearForm()">Clear</button>
+            </div>
+            
+           
+        </form>
+    
+    <br> <br>
+<!--UPDATE SCRIPT-->
+    <script>
+        document.addEventListener('DOMContentLoaded', () =>{
+            const params = new URLSearchParams(window.location.search);
+            const serialID = params.get('serialID');
+            //display serialID
+            document.getElementById('serialIDDisplay').textContent = serialID;
+            fillForm(
+                params.get('serialID'),
+                params.get('name'),
+                params.get('type'),
+                params.get('brand'),
+                params.get('price')
+            );
+        });
+
+
+
+        function clearForm() {
+            // Clear the form fields here
+            document.getElementById('name').value = '';
+            document.getElementById('tech_type').value = '';
+            document.getElementById('brand').value = '';
+            document.getElementById('price').value = '';
+        }
+
+
+
+
+        // Filling form function
+        function fillForm(serialID, name, type, brand, price) {
+            // Populate form fields with the data of the selected item
+            // document.getElementById('serialIDDisplay').value = serialID;
+            const params = new URLSearchParams(window.location.search);
+            serialID = params.get('serialID');
+
+            
+            document.getElementById('name').value = name;
+            document.getElementById('tech_type').value = type;
+            document.getElementById('brand').value = brand;
+            document.getElementById('price').value = price;
+        }
+
+        document.getElementById('updateItemForm').onsubmit = function(event) {
+            event.preventDefault();
+            
+            const params = new URLSearchParams(window.location.search);
+            const serialID = params.get('serialID');
+            
+
+            const updatedItemData = {
+            name: document.getElementById('name').value,
+            type: document.getElementById('tech_type').value,
+            brand: document.getElementById('brand').value,
+            price: document.getElementById('price').value
+            };
+
+
+            fetch(`/update-tech/${serialID}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(updatedItemData)
+            })
+            .then(handleResponse)
+            .catch(handleError);
+        };
+        
+
+        // HANDLE RESPONSE FUNCTION
+        function handleResponse(response) {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.text().then(() => {
+                alert('Customer updated successfully');
+                const updatedItem = encodeURIComponent(document.getElementById('name').value)
+                window.location.href = `/update-item?search=${updatedItem}`;
+            });
+        }
+        // HANDLE ERROR FUNCTION
+        function handleError(error) {
+            console.error('Error:', error);
+            alert('An error occurred while updating the customer');
+        }
+
+    </script>
+</body>
+</html>
